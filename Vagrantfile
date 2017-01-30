@@ -168,35 +168,35 @@ Vagrant.configure('2') do |config|
   config.vm.provision 'shell',
                       privileged: false,
                       name: 'Fix permissions',
-                      inline: <<-EOF
+                      inline: <<-SHELL
                         chmod 600 /home/vagrant/.ssh/id_rsa
                         chmod 644 /home/vagrant/.ssh/id_rsa.pub
-                      EOF
+                      SHELL
 
   # Automatically add *.dev hosts to known_hosts by disabling the StrictHostKeyChecking
   config.vm.provision 'shell',
                       name: 'Configure StrictHostKeyChecking',
-                      inline: <<-EOF
+                      inline: <<-SHELL
                         sudo printf '%s\n' 'Host *.dev' '  StrictHostKeyChecking no' > /home/vagrant/.ssh/config
                         sudo chown vagrant:vagrant /home/vagrant/.ssh/config
                         sudo chmod 400 /home/vagrant/.ssh/config
-                      EOF
+                      SHELL
 
   # Prevent access with plaintext password
   # The box allows login with plaintext password so attacker can login with
   # default username and password vagrant / vagrant.
   config.vm.provision 'shell',
                       name: 'Prevent access with plaintext password',
-                      inline: <<-EOF
+                      inline: <<-SHELL
                         sudo sed -i -e "\\#PasswordAuthentication yes# s#PasswordAuthentication yes#PasswordAuthentication no#g" /etc/ssh/sshd_config
                         sudo systemctl restart sshd
-                      EOF
+                      SHELL
 
   # Append the `personal` and `project` public SSH key to the clients' authorized_keys.
   config.vm.provision 'shell',
                       privileged: false,
                       name: 'Apply host\'s id_rsa.pub to vagrant authorized_keys',
-                      inline: <<-EOF
+                      inline: <<-SHELL
                         # Print the key | add to `authorized_keys`, sort the files, remove duplicates  | write to `authorized_keys_tmp`
                         echo '#{ssh_public_key_project}' 2>&1 | sort -u - /home/vagrant/.ssh/authorized_keys > /home/vagrant/.ssh/authorized_keys_tmp
                         mv /home/vagrant/.ssh/authorized_keys_tmp /home/vagrant/.ssh/authorized_keys
@@ -210,7 +210,7 @@ Vagrant.configure('2') do |config|
 
                         # Fix permissions
                         chmod 644 /home/vagrant/.ssh/authorized_keys
-                      EOF
+                      SHELL
 
   # ----------------------------------------------------------------------------
   # Vagrant Host Manager (apply to all VMs)
